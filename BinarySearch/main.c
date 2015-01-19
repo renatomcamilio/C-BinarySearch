@@ -9,20 +9,35 @@
 #include <stdio.h>
 #include <math.h>
 
+typedef struct BSrange {
+    int firstIndex;
+    int ocurrencies;
+} BSRange;
 
-int binarySearch(int array[], int value, int min, int max) {
+BSRange *binarySearch(int array[], int value, int min, int max, BSRange *range) {
     if (max < min) {
-        return -1;
+        return range;
     }
     
     int middleIndex = (min + max) / 2;
 
     if (array[middleIndex] > value) {
-        return binarySearch(array, value, min, middleIndex - 1);
+        return binarySearch(array, value, min, middleIndex - 1, range);
     } else if (array[middleIndex] < value) {
-        return binarySearch(array, value, middleIndex + 1, max);
+        return binarySearch(array, value, middleIndex + 1, max, range);
     } else {
-        return middleIndex;
+        range->ocurrencies += 1;
+        
+        if (range->firstIndex < 0) {
+            range->firstIndex = middleIndex;
+        } else if (range->firstIndex > middleIndex) {
+            range->firstIndex = middleIndex;
+        }
+        
+        binarySearch(array, value, min, middleIndex - 1, range);
+        binarySearch(array, value, middleIndex + 1, max, range);
+        
+        return range;
     }
 }
 
@@ -31,9 +46,10 @@ int binarySearch(int array[], int value, int min, int max) {
 int main(int argc, char * argv[]) {
     int numbers[] = { 1, 2, 2, 3, 4, 4, 4 };
     int numbersSize = sizeof(numbers) / sizeof(int);
+    BSRange range = { .firstIndex = -1, .ocurrencies = 0 };
 
-    int result = binarySearch(numbers, 4, 0, numbersSize - 1);
-    printf("found at index %i\n", result);
+    binarySearch(numbers, 4, 0, numbersSize - 1, &range);
+    printf("result: {%i, %i}\n", range.firstIndex, range.ocurrencies);
 
     return 0;
 }
